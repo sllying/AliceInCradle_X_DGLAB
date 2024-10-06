@@ -1,0 +1,11 @@
+E:\bt\XJ00291\[als]coyote\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\plugins\AliceInCradleXDGLAB.dll.config
+E:\bt\XJ00291\[als]coyote\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\plugins\AliceInCradleXDGLAB.dll
+E:\bt\XJ00291\[als]coyote\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\plugins\AliceInCradleXDGLAB.pdb
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Debug\AliceInCradle.csproj.AssemblyReference.cache
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Debug\AliceInCradle.csproj.CoreCompileInputs.cache
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Debug\AliceInCradleXDGLAB.dll
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Debug\AliceInCradleXDGLAB.pdb
+E:\bt\XJ00291\[als]coyote\vs\AliceInCradle\cs2\obj\Debug\AliceInCradle.csproj.AssemblyReference.cache
+E:\bt\XJ00291\[als]coyote\vs\AliceInCradle\cs2\obj\Debug\AliceInCradle.csproj.CoreCompileInputs.cache
+E:\bt\XJ00291\[als]coyote\vs\AliceInCradle\cs2\obj\Debug\AliceInCradleXDGLAB.dll
+E:\bt\XJ00291\[als]coyote\vs\AliceInCradle\cs2\obj\Debug\AliceInCradleXDGLAB.pdb

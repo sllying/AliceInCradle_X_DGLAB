@@ -1,0 +1,10 @@
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\bin\Debug\cs2.dll
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\bin\Debug\cs2.pdb
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Debug\cs2.csproj.AssemblyReference.cache
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Debug\cs2.csproj.CoreCompileInputs.cache
+E:\bt\XJ00291\[als]coyote\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\plugins\config.json
+E:\bt\XJ00291\[als]coyote\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\plugins\cs2.dll.config
+E:\bt\XJ00291\[als]coyote\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\plugins\cs2.dll
+E:\bt\XJ00291\[als]coyote\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\plugins\cs2.pdb
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Debug\cs2.dll
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Debug\cs2.pdb

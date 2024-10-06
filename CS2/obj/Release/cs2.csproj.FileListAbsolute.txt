@@ -1,0 +1,2 @@
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Release\cs2.csproj.AssemblyReference.cache
+E:\bt\XJ00291\[als]coyote\vs\cs2\cs2\obj\Release\cs2.csproj.CoreCompileInputs.cache
