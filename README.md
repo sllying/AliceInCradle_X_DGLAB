@@ -5,11 +5,9 @@
 ## 食用教程
 ### MOD安装教程
 将压缩包文件中的第一个AliceInCradle_ver026文件夹的内容复制到本地游戏中的AliceInCradle_ver026文件夹中即可
-\
 [点击前往下载MOD](https://github.com/sllying/AliceInCradle_X_DGLAB/releases)\
 ### 链接郊狼教程
 下载[DG-Lab-Coyote-Game-Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub)，启动即可，扫码与郊狼链接，注意需要同一网络下。
-\
 ### Play
 点击启动输出即可（推荐选快速按捏((）
  \
