@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -53,6 +53,7 @@ namespace AliceInCradle
         private int ReductionValue;
         private int FireMode;
         private DateTime _lastCheckTime;
+        private int lowest;
         public void Start()
         {
             string jsonContent = File.ReadAllText("Config.json");
@@ -64,7 +65,7 @@ namespace AliceInCradle
             CheckIntervalMs = (int)config["CheckIntervalMs"];
             ReductionValue = (int)config["ReductionValue"];
             FireMode = (int)config["FireMode"];
-
+            lowest = (int)config["lowest"];
             //Log($"hpReductionMultiplier: {hpReductionMultiplier}");
             //Log($"hpCheckIntervalMs: {hpCheckIntervalMs}");
             //Log($"hpReductionValue: {hpReductionValue}");
@@ -84,82 +85,141 @@ namespace AliceInCradle
         {
             if (FireMode == 1)
             {
-            //var hp2 = GameObject.FindObjectOfType<PRNoel>();
-            //var hpnow = Traverse.Create(hp2).Field("hp").GetValue<int>();
+                //var hp2 = GameObject.FindObjectOfType<PRNoel>();
+                //var hpnow = Traverse.Create(hp2).Field("hp").GetValue<int>();
 
-            //startCD++;
-            start ++;
-            if (start >= end)
-            {
-
-                var hp = GameObject.FindObjectOfType<PRNoel>();
-
-                if (hp != null)
+                //startCD++;
+                start++;
+                if (start >= end)
                 {
-                    var hpnow = Traverse.Create(hp).Field("hp").GetValue<int>();
-                    //Log(hpnow.ToString());
-                }
 
-                var hpmax = GameObject.FindObjectOfType<PRNoel>();
+                    var hp = GameObject.FindObjectOfType<PRNoel>();
 
-                if (hpmax != null)
-                {
-                    var hpmaxnow = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
-                    //Log(hpmaxnow.ToString());
-                }
-
-                var hpstart = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
-                var hpnow1 = Traverse.Create(hp).Field("hp").GetValue<int>();
-
-                if (_previousHp == null)
-                {
-                    _previousHp = hpstart;
-
-                }
-                else
-                {
-                    int difference = hpnow1 - _previousHp.Value;
-                    //Log($"差距: {difference}");
-                    if (difference > 20 && difference <60)
+                    if (hp != null)
                     {
-                        int subDGLAB_middle = Math.Abs((int)(difference));
-                        SendStrengthConfigAsync(0,0, subDGLAB_middle).ConfigureAwait(false);
-                        //Log("加血");
-                        //Log($"hpReductionValue: {subDGLAB_middle}");
+                        var hpnow = Traverse.Create(hp).Field("hp").GetValue<int>();
+                        //Log(hpnow.ToString());
                     }
-                    else if (difference < 0 && difference >-60)
-                    {
-                        //int addDGLAB_middle = Math.Abs((int)(difference));
-                        int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
-                        SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                        //Log("减血");
-                        //startCD -= 100;
 
+                    var hpmax = GameObject.FindObjectOfType<PRNoel>();
+
+                    if (hpmax != null)
+                    {
+                        var hpmaxnow = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
+                        //Log(hpmaxnow.ToString());
+                    }
+
+                    var hpstart = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
+                    var hpnow1 = Traverse.Create(hp).Field("hp").GetValue<int>();
+
+                    if (_previousHp == null)
+                    {
+                        _previousHp = hpstart;
 
                     }
                     else
                     {
-                        //Log("没变化");
-                        SendStrengthConfigAsync(0, 0 ,0).ConfigureAwait(false);
-                        DateTime now = DateTime.UtcNow;
-                        if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                        int difference = hpnow1 - _previousHp.Value;
+                        //Log($"差距: {difference}");
+                        if (difference > 20 && difference < 100)
                         {
-                            _lastCheckTime = now;
-                            endCD = 1;
+                            int subDGLAB_middle = Math.Abs((int)(difference));
+                            SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
+                            //Log("加血");
+                            //Log($"hpReductionValue: {subDGLAB_middle}");
                         }
+                        else if (difference < 0 && difference > -60)
+                        {
+
+                                //int addDGLAB_middle = Math.Abs((int)(difference));
+                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
+                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                                //Log("减血");
+                                //startCD -= 100;
+
+                            
+                        }
+                        else
+                        {
+                            //Log("没变化");
+                            SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
+                            DateTime now = DateTime.UtcNow;
+                            if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                            {
+                                _lastCheckTime = now;
+                                endCD = 1;
+                            }
+                        }
+                        _previousHp = hpnow1;
                     }
-                    _previousHp = hpnow1;
+
+                    var mp = GameObject.FindObjectOfType<PRNoel>();
+
+                    if (mp != null)
+                    {
+                        var mpnow = Traverse.Create(mp).Field("mp").GetValue<int>();
+                        //Log(mpnow.ToString());
+                    }
+
+                    var mpmax = GameObject.FindObjectOfType<PRNoel>();
+
+                    if (mpmax != null)
+                    {
+                        var mpmaxnow = Traverse.Create(mpmax).Field("maxmp").GetValue<int>();
+                        //Log(mpmaxnow.ToString());
+                    }
+
+                    var mpstart = Traverse.Create(mpmax).Field("maxhp").GetValue<int>();
+                    var mpnow1 = Traverse.Create(mp).Field("mp").GetValue<int>();
+
+                    if (_previousMp == null)
+                    {
+                        _previousMp = mpstart;
+
+                    }
+                    else
+                    {
+                        int difference = mpnow1 - _previousMp.Value;
+                        //Log($"差距: {difference}");
+                        if (difference > 50 && difference < 80)
+                        {
+                            int subDGLAB_middle = Math.Abs((int)(difference));
+                            SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
+                            //Log("加蓝");
+                            //Log($"mpReductionValue: {subDGLAB_middle}");
+                        }
+                        else if (difference < 0 && difference > -5 && lowest != 0)
+                        {
+                             SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
+                         }
+
+                        
+
+                        else
+                        {
+                            //Log("没变化");
+                            SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
+                            DateTime now = DateTime.UtcNow;
+                            if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                            {
+                                _lastCheckTime = now;
+                                endCD = 1;
+                            }
+                        }
+                        _previousMp = mpnow1;
+                    }
+
+
+                    start = 0;
                 }
-                start = 0;
-            }
 
 
 
-            //if (startCD >= 1)
-            //{
-            //    endCD = 1;
-            //    startCD = 0;
-            //}
+                //if (startCD >= 1)
+                //{
+                //    endCD = 1;
+                //    startCD = 0;
+                //}
             }
             if (FireMode == 0)
             {
@@ -196,23 +256,25 @@ namespace AliceInCradle
                     {
                         int difference = hpnow1 - _previousHp.Value;
                         //Log($"差距: {difference}");
-                        if (difference > 20 && difference < 60)
+                        if (difference > 20 && difference < 100)
                         {
                             int subDGLAB_middle = Math.Abs((int)(difference));
                             SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
                             //Log("加血");
                             //Log($"hpReductionValue: {subDGLAB_middle}");
                         }
-                        else if (difference < 0 && difference > -60)
+                        else if (difference < 0 && difference > -100)
                         {
-                            //int addDGLAB_middle = Math.Abs((int)(difference));
-                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
-                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                            //Log("减血");
-                            //startCD -= 100;
 
+                                //int addDGLAB_middle = Math.Abs((int)(difference));
+                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
+                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                                //Log("减血");
+                                //startCD -= 100;
 
+                            
                         }
+
                         else
                         {
                             //Log("没变化");
@@ -226,6 +288,64 @@ namespace AliceInCradle
                         }
                         _previousHp = hpnow1;
                     }
+                    var mp = GameObject.FindObjectOfType<PRNoel>();
+
+                    if (mp != null)
+                    {
+                        var mpnow = Traverse.Create(mp).Field("mp").GetValue<int>();
+                        //Log(mpnow.ToString());
+                    }
+
+                    var mpmax = GameObject.FindObjectOfType<PRNoel>();
+
+                    if (mpmax != null)
+                    {
+                        var mpmaxnow = Traverse.Create(mpmax).Field("maxmp").GetValue<int>();
+                        //Log(mpmaxnow.ToString());
+                    }
+
+                    var mpstart = Traverse.Create(mpmax).Field("maxhp").GetValue<int>();
+                    var mpnow1 = Traverse.Create(mp).Field("mp").GetValue<int>();
+
+                    if (_previousMp == null)
+                    {
+                        _previousMp = mpstart;
+
+                    }
+                    else
+                    {
+                        int difference = mpnow1 - _previousMp.Value;
+                        //Log($"差距: {difference}");
+                        if (difference > 20 && difference < 100)
+                        {
+                            int subDGLAB_middle = Math.Abs((int)(difference));
+                            SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
+                            //Log("加蓝");
+                            //Log($"mpReductionValue: {subDGLAB_middle}");
+                        }
+                        else if (difference < 0 && difference > -5 && lowest != 0)
+                        {
+                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
+                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                        }
+
+                        else
+                        {
+                            //Log("没变化");
+                            SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
+                            DateTime now = DateTime.UtcNow;
+                            if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                            {
+                                _lastCheckTime = now;
+                                endCD = 1;
+                            }
+                        }
+                        _previousMp = mpnow1;
+                    }
+
+
+
+
                     start = 0;
                 }
 
@@ -272,7 +392,7 @@ namespace AliceInCradle
                     {
                         int difference = hpnow1 - _previousHp.Value;
                         //Log($"差距: {difference}");
-                        if (difference > 20 && difference < 60)
+                        if (difference > 50 && difference < 80)
                         {
                             int subDGLAB_middle = Math.Abs((int)(difference));
                             SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
@@ -281,13 +401,14 @@ namespace AliceInCradle
                         }
                         else if (difference < 0 && difference > -60)
                         {
-                            //int addDGLAB_middle = Math.Abs((int)(difference));
-                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
-                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                            //Log("减血");
-                            //startCD -= 100;
 
+                                //int addDGLAB_middle = Math.Abs((int)(difference));
+                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
+                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                                //Log("减血");
+                                //startCD -= 100;
 
+                            
                         }
                         else
                         {
@@ -332,23 +453,34 @@ namespace AliceInCradle
                     {
                         int difference = mpnow1 - _previousMp.Value;
                         //Log($"差距: {difference}");
-                        if (difference > 20 && difference < 60)
+                        if (difference > 50 && difference < 80)
                         {
                             int subDGLAB_middle = Math.Abs((int)(difference));
                             SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
                             //Log("加蓝");
                             //Log($"mpReductionValue: {subDGLAB_middle}");
                         }
-                        else if (difference < 0 && difference > -60)
+                        else if (difference < 0 && difference > -70)
                         {
-                            //int addDGLAB_middle = Math.Abs((int)(difference));
-                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
-                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                            //Log("减蓝");
-                            //startCD -= 100;
-
-
+                            if (lowest != 0)
+                            {
+                                if (difference == -2 || difference == -4)
+                                {
+                                    SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
+                                }
+                                else
+                                {
+                                    int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
+                                    SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                                }
+                            }
+                            else
+                            {
+                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
+                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                            }
                         }
+
                         else
                         {
                             //Log("没变化");
@@ -377,6 +509,8 @@ namespace AliceInCradle
                 //}
             }
 
+            
+
         }
         private async Task SendStrengthConfigAsync(int setDGLAB, int addDGLAB, int subDGLAB)
         {
@@ -386,10 +520,10 @@ namespace AliceInCradle
 
             try
             {
-                    // 构建请求体，根据参数包含不同的属性
-                    string jsonContent;
-                    if (setDGLAB == 0 && addDGLAB == 0 && subDGLAB == 0 && endCD == 1)
-                    {
+                // 构建请求体，根据参数包含不同的属性
+                string jsonContent;
+                if (setDGLAB == 0 && addDGLAB == 0 && subDGLAB == 0 && endCD == 1)
+                {
                     jsonContent = $@"
                     {{
                         ""strength"": {{
@@ -399,34 +533,34 @@ namespace AliceInCradle
 
                     endCD = 0;
                 }
-                    else if (setDGLAB != 0 && addDGLAB == 0 && subDGLAB == 0)
-                    {
-                        jsonContent = $@"
+                else if (setDGLAB != 0 && addDGLAB == 0 && subDGLAB == 0)
+                {
+                    jsonContent = $@"
                     {{
                         ""strength"": {{
                             ""set"": {setDGLAB}
                         }}
                     }}";
-                    }
-                    else if (setDGLAB == 0 && addDGLAB != 0 && subDGLAB == 0)
-                    {
-                        jsonContent = $@"
+                }
+                else if (setDGLAB == 0 && addDGLAB != 0 && subDGLAB == 0)
+                {
+                    jsonContent = $@"
                     {{
                         ""strength"": {{
                             ""add"": {addDGLAB}
                         }}
                     }}";
-                    }
-                    else if (setDGLAB == 0 && addDGLAB == 0 && subDGLAB != 0) 
-                    {
-                        jsonContent = $@"
+                }
+                else if (setDGLAB == 0 && addDGLAB == 0 && subDGLAB != 0)
+                {
+                    jsonContent = $@"
                     {{
                         ""strength"": {{
                             ""sub"": {subDGLAB}
                         }}
                     }}";
-                    }
-                    else
+                }
+                else
                 {
                     jsonContent = $@"
                     {{
@@ -438,20 +572,20 @@ namespace AliceInCradle
 
 
                 using (HttpClient client = new HttpClient())
-                    {
-                        HttpContent content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
-                        HttpResponseMessage response = await client.PostAsync(url, content);
-                        response.EnsureSuccessStatusCode();
-                        string responseBody = await response.Content.ReadAsStringAsync();
-                        //Log($"Response body:\n{responseBody}");
-                    }
-                }
-                catch (Exception e)
                 {
-                    //Log("Exception Caught!");
-                    //Log($"Message: {e.Message}");
+                    HttpContent content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+                    response.EnsureSuccessStatusCode();
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    //Log($"Response body:\n{responseBody}");
                 }
             }
+            catch (Exception e)
+            {
+                //Log("Exception Caught!");
+                //Log($"Message: {e.Message}");
+            }
+        }
         //static readonly HttpClient client = new HttpClient();
 
         //static async Task Main(string[] args)
