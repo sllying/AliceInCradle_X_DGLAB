@@ -75,7 +75,7 @@ namespace AliceInCradle
 
 
         private int start = 0;
-        private int end = 20;
+        private int end = 10;
         private int startCD = 0;
         private int endCD = 0;
 
@@ -188,7 +188,7 @@ namespace AliceInCradle
                             //Log("加蓝");
                             //Log($"mpReductionValue: {subDGLAB_middle}");
                         }
-                        else if (difference < 0 && difference > -5 && lowest != 0)
+                        else if (difference < -1 && difference > -5 && lowest != 0)
                         {
                              SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
                          }
@@ -323,7 +323,7 @@ namespace AliceInCradle
                             //Log("加蓝");
                             //Log($"mpReductionValue: {subDGLAB_middle}");
                         }
-                        else if (difference < 0 && difference > -5 && lowest != 0)
+                        else if (difference < -1 && difference > -5 && lowest != 0)
                         {
                                 int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
                                 SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
