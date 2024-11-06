@@ -508,9 +508,25 @@ namespace AliceInCradle
                 //    startCD = 0;
                 //}
             }
-
-            
-
+            if (Hero != 0)
+            {
+                var ep = GameObject.FindObjectOfType<M2MoverPr>();
+                if (ep != null)
+                {
+                    var epnow = Traverse.Create(ep).Field("ep").GetValue<int>();
+                    //Log(epnow.ToString());
+                    if(epnow == 999 && flag == false)
+                    {
+                        flag = true;
+                        int addDGLAB_middle = Math.Abs((int)Math.Ceiling(Hero * 1.0));
+                        SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                    }else if(epnow < 999)
+                    {
+                        flag = false;
+                    }
+                    
+                }
+            }
         }
         private async Task SendStrengthConfigAsync(int setDGLAB, int addDGLAB, int subDGLAB)
         {
