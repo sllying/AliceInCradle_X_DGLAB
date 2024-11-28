@@ -53,7 +53,11 @@ namespace AliceInCradle
         private int ReductionValue;
         private int FireMode;
         private DateTime _lastCheckTime;
+        private DateTime _lastCheckTime2;
+        private DateTime _lastCheckTime3;
         private int lowest;
+        private int Hero;
+        bool flag = false;
         public void Start()
         {
             string jsonContent = File.ReadAllText("Config.json");
@@ -66,6 +70,7 @@ namespace AliceInCradle
             ReductionValue = (int)config["ReductionValue"];
             FireMode = (int)config["FireMode"];
             lowest = (int)config["lowest"];
+            Hero = (int)config["Hero"];
             //Log($"hpReductionMultiplier: {hpReductionMultiplier}");
             //Log($"hpCheckIntervalMs: {hpCheckIntervalMs}");
             //Log($"hpReductionValue: {hpReductionValue}");
@@ -75,10 +80,10 @@ namespace AliceInCradle
 
 
         private int start = 0;
-        private int end = 10;
+        private int end = 0;
         private int startCD = 0;
         private int endCD = 0;
-
+        private int tamp = 0;
         private int? _previousHp = null;
         private int? _previousMp = null;
         public void Update()
@@ -511,6 +516,7 @@ namespace AliceInCradle
             if (Hero != 0)
             {
                 var ep = GameObject.FindObjectOfType<M2MoverPr>();
+
                 if (ep != null)
                 {
                     var epnow = Traverse.Create(ep).Field("ep").GetValue<int>();
@@ -528,6 +534,7 @@ namespace AliceInCradle
                 }
             }
         }
+
         private async Task SendStrengthConfigAsync(int setDGLAB, int addDGLAB, int subDGLAB)
         {
             string baseUrl = "http://127.0.0.1:8920/";
