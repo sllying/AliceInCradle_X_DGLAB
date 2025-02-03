@@ -20,11 +20,13 @@ using Microsoft.CSharp;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
 using static UnityEngine.UI.ContentSizeFitter;
+using System.Runtime.Serialization;
+using nel.mgm;
 
 
 namespace AliceInCradle
 {
-    [BepInPlugin("AliceInCradle.DGLAB", "Main", "0.26.0")]
+    [BepInPlugin("AliceInCradle.DGLAB", "Main", "0.27.0")]
 
     public class Main : BaseUnityPlugin
     {
@@ -49,15 +51,16 @@ namespace AliceInCradle
 
         private float hpReductionMultiplier;
         private float mpReductionMultiplier;
+        private float epReductionMultiplier;
         private int CheckIntervalMs;
         private int ReductionValue;
         private int FireMode;
         private DateTime _lastCheckTime;
         private DateTime _lastCheckTime2;
-        private DateTime _lastCheckTime3;
         private int lowest;
         private int Hero;
-        bool flag = false;
+        private int holdMs;
+        private int eroH;
         public void Start()
         {
             string jsonContent = File.ReadAllText("Config.json");
@@ -66,65 +69,149 @@ namespace AliceInCradle
             JObject config = JObject.Parse(jsonContent);
             hpReductionMultiplier = (float)config["hpReductionMultiplier"];
             mpReductionMultiplier = (float)config["mpReductionMultiplier"];
+            epReductionMultiplier = (float)config["epReductionMultiplier"];
             CheckIntervalMs = (int)config["CheckIntervalMs"];
             ReductionValue = (int)config["ReductionValue"];
             FireMode = (int)config["FireMode"];
             lowest = (int)config["lowest"];
             Hero = (int)config["Hero"];
+            holdMs = (int)config["holdMs"];
+            eroH = (int)config["eroH"];
             //Log($"hpReductionMultiplier: {hpReductionMultiplier}");
             //Log($"hpCheckIntervalMs: {hpCheckIntervalMs}");
             //Log($"hpReductionValue: {hpReductionValue}");
             _lastCheckTime = DateTime.MinValue;
-
+            _lastCheckTime2 = DateTime.MinValue;
         }
 
 
         private int start = 0;
         private int end = 0;
-        private int startCD = 0;
         private int endCD = 0;
-        private int tamp = 0;
+        private bool EpFlag = false;
+        private bool OrFlag = false;
+        private bool OrFlag2 = false;
         private int? _previousHp = null;
         private int? _previousMp = null;
+        private int? _previousEp = null;
+        private int? _previousOr = null;
         public void Update()
         {
+            var hpMax = default(object);
+            var hp = default(object);
+            var hpStart = default(int);
+            var hpNow1 = default(int);
+            var mp = GameObject.FindObjectOfType<PRNoel>();
+            var mpMax = GameObject.FindObjectOfType<PRNoel>();
+            var mpStart = default(int);
+            var mpNow1 = default(int);
+            var ep = GameObject.FindObjectOfType<M2MoverPr>();
+            var orgasm = GameObject.FindObjectOfType<MgmEggRemove>();
+            var prNoel = GameObject.FindObjectOfType<PR>();
+            if (FireMode == 0)
+            {
+                hp = GameObject.FindObjectOfType<M2Attackable>();
+                hpMax = GameObject.FindObjectOfType<M2Attackable>();
+            }
             if (FireMode == 1)
             {
-                //var hp2 = GameObject.FindObjectOfType<PRNoel>();
-                //var hpnow = Traverse.Create(hp2).Field("hp").GetValue<int>();
-
-                //startCD++;
-                start++;
-                if (start >= end)
+                hp = GameObject.FindObjectOfType<PRNoel>();
+                hpMax = GameObject.FindObjectOfType<PRNoel>();
+            }
+            if (hp != null)
+            {
+                hpNow1 = Traverse.Create(hp).Field("hp").GetValue<int>();
+                //Log(hpNow1.ToString());
+            }
+            if (hpMax != null)
+            {
+                hpStart = Traverse.Create(hpMax).Field("maxhp").GetValue<int>();
+                //Log(hpStart.ToString());
+            }
+            if (mp != null)
+            {
+                mpNow1 = Traverse.Create(mp).Field("mp").GetValue<int>();
+                //Log(mpNow1.ToString());
+            }
+            if (mpMax != null)
+            {
+                mpStart = Traverse.Create(mpMax).Field("maxmp").GetValue<int>();
+                //Log(mpStart.ToString());
+            }
+            if (prNoel != null)
+            {
+                var epManager = prNoel.EpCon;
+                if (epManager != null)
                 {
+                    int multiple = epManager.getOrgasmedTotal();
+                    //Log($"值: {multiple}");
 
-                    var hp = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (hp != null)
+                    if (_previousOr == null)
                     {
-                        var hpnow = Traverse.Create(hp).Field("hp").GetValue<int>();
-                        //Log(hpnow.ToString());
-                    }
-
-                    var hpmax = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (hpmax != null)
-                    {
-                        var hpmaxnow = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
-                        //Log(hpmaxnow.ToString());
-                    }
-
-                    var hpstart = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
-                    var hpnow1 = Traverse.Create(hp).Field("hp").GetValue<int>();
-
-                    if (_previousHp == null)
-                    {
-                        _previousHp = hpstart;
-
+                        _previousOr = multiple;
                     }
                     else
                     {
-                        int difference = hpnow1 - _previousHp.Value;
+                        int difference = multiple - _previousOr.Value;
+                        if (difference > 0)
+                        {
+                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * Hero * 1.0));
+                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                            OrFlag = true;
+                            _lastCheckTime2 = DateTime.UtcNow;
+                        }
+
+                        _previousOr = multiple;
+                    }
+                }
+            }
+            if (ep != null)
+            {
+                var epNow = Traverse.Create(ep).Field("ep").GetValue<int>();
+                if (_previousEp == null)
+                {
+                    _previousEp = epNow;
+                }
+                else
+                {
+                    int difference = epNow - _previousEp.Value;
+                    if (difference > 0 && difference < 100)
+                    {
+                        EpFlag = true;
+                        int addDGLAB_middle = Math.Abs((int)Math.Round(difference * epReductionMultiplier / 10));
+                        SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                    }
+
+                }
+                _previousEp = epNow;
+
+            }
+            if (OrFlag)
+            {
+                DateTime now1 = DateTime.UtcNow;
+                if (now1 - _lastCheckTime2 > TimeSpan.FromMilliseconds(holdMs))
+                {
+                    OrFlag2 = true;
+                }
+                if (OrFlag2 == true)
+                {
+                    OrFlag = false;
+                    OrFlag2 = false;
+                    SendStrengthConfigAsync(0, 0, eroH).ConfigureAwait(false);
+                }
+            }
+            if (FireMode == 1)
+            {
+                start++;
+                if (start >= end)
+                {
+                    if (_previousHp == null)
+                    {
+                        _previousHp = hpStart;
+                    }
+                    else
+                    {
+                        int difference = hpNow1 - _previousHp.Value;
                         //Log($"差距: {difference}");
                         if (difference > 20 && difference < 100)
                         {
@@ -136,13 +223,11 @@ namespace AliceInCradle
                         else if (difference < 0 && difference > -60)
                         {
 
-                                //int addDGLAB_middle = Math.Abs((int)(difference));
-                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
-                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                                //Log("减血");
-                                //startCD -= 100;
-
-                            
+                            //int addDGLAB_middle = Math.Abs((int)(difference));
+                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
+                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                            //Log("减血");
+                            //startCD -= 100;
                         }
                         else
                         {
@@ -155,36 +240,16 @@ namespace AliceInCradle
                                 endCD = 1;
                             }
                         }
-                        _previousHp = hpnow1;
+                        _previousHp = hpNow1;
                     }
-
-                    var mp = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (mp != null)
-                    {
-                        var mpnow = Traverse.Create(mp).Field("mp").GetValue<int>();
-                        //Log(mpnow.ToString());
-                    }
-
-                    var mpmax = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (mpmax != null)
-                    {
-                        var mpmaxnow = Traverse.Create(mpmax).Field("maxmp").GetValue<int>();
-                        //Log(mpmaxnow.ToString());
-                    }
-
-                    var mpstart = Traverse.Create(mpmax).Field("maxhp").GetValue<int>();
-                    var mpnow1 = Traverse.Create(mp).Field("mp").GetValue<int>();
-
                     if (_previousMp == null)
                     {
-                        _previousMp = mpstart;
+                        _previousMp = mpStart;
 
                     }
                     else
                     {
-                        int difference = mpnow1 - _previousMp.Value;
+                        int difference = mpNow1 - _previousMp.Value;
                         //Log($"差距: {difference}");
                         if (difference > 50 && difference < 80)
                         {
@@ -193,13 +258,11 @@ namespace AliceInCradle
                             //Log("加蓝");
                             //Log($"mpReductionValue: {subDGLAB_middle}");
                         }
-                        else if (difference < -1 && difference > -5 && lowest != 0)
+                        else if (difference <= -1 && difference > -10 && lowest != 0 && EpFlag == true)
                         {
-                             SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
-                         }
-
-                        
-
+                            SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
+                            EpFlag = false;
+                        }
                         else
                         {
                             //Log("没变化");
@@ -211,55 +274,24 @@ namespace AliceInCradle
                                 endCD = 1;
                             }
                         }
-                        _previousMp = mpnow1;
+                        _previousMp = mpNow1;
                     }
-
-
                     start = 0;
                 }
-
-
-
-                //if (startCD >= 1)
-                //{
-                //    endCD = 1;
-                //    startCD = 0;
-                //}
             }
             if (FireMode == 0)
             {
-                //startCD++;
                 start++;
                 if (start >= end)
                 {
-
-                    var hp = GameObject.FindObjectOfType<M2Attackable>();
-
-                    if (hp != null)
-                    {
-                        var hpnow = Traverse.Create(hp).Field("hp").GetValue<int>();
-                        //Log(hpnow.ToString());
-                    }
-
-                    var hpmax = GameObject.FindObjectOfType<M2Attackable>();
-
-                    if (hpmax != null)
-                    {
-                        var hpmaxnow = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
-                        //Log(hpmaxnow.ToString());
-                    }
-
-                    var hpstart = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
-                    var hpnow1 = Traverse.Create(hp).Field("hp").GetValue<int>();
-
                     if (_previousHp == null)
                     {
-                        _previousHp = hpstart;
+                        _previousHp = hpStart;
 
                     }
                     else
                     {
-                        int difference = hpnow1 - _previousHp.Value;
+                        int difference = hpNow1 - _previousHp.Value;
                         //Log($"差距: {difference}");
                         if (difference > 20 && difference < 100)
                         {
@@ -271,13 +303,13 @@ namespace AliceInCradle
                         else if (difference < 0 && difference > -100)
                         {
 
-                                //int addDGLAB_middle = Math.Abs((int)(difference));
-                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
-                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                                //Log("减血");
-                                //startCD -= 100;
+                            //int addDGLAB_middle = Math.Abs((int)(difference));
+                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
+                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                            //Log("减血");
+                            //startCD -= 100;
 
-                            
+
                         }
 
                         else
@@ -291,35 +323,17 @@ namespace AliceInCradle
                                 endCD = 1;
                             }
                         }
-                        _previousHp = hpnow1;
+                        _previousHp = hpNow1;
                     }
-                    var mp = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (mp != null)
-                    {
-                        var mpnow = Traverse.Create(mp).Field("mp").GetValue<int>();
-                        //Log(mpnow.ToString());
-                    }
-
-                    var mpmax = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (mpmax != null)
-                    {
-                        var mpmaxnow = Traverse.Create(mpmax).Field("maxmp").GetValue<int>();
-                        //Log(mpmaxnow.ToString());
-                    }
-
-                    var mpstart = Traverse.Create(mpmax).Field("maxhp").GetValue<int>();
-                    var mpnow1 = Traverse.Create(mp).Field("mp").GetValue<int>();
 
                     if (_previousMp == null)
                     {
-                        _previousMp = mpstart;
+                        _previousMp = mpStart;
 
                     }
                     else
                     {
-                        int difference = mpnow1 - _previousMp.Value;
+                        int difference = mpNow1 - _previousMp.Value;
                         //Log($"差距: {difference}");
                         if (difference > 20 && difference < 100)
                         {
@@ -328,12 +342,11 @@ namespace AliceInCradle
                             //Log("加蓝");
                             //Log($"mpReductionValue: {subDGLAB_middle}");
                         }
-                        else if (difference < -1 && difference > -5 && lowest != 0)
+                        else if (difference <= -1 && difference > -10 && lowest != 0 && EpFlag == true)
                         {
-                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
-                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                            SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
+                            EpFlag = false;
                         }
-
                         else
                         {
                             //Log("没变化");
@@ -345,57 +358,24 @@ namespace AliceInCradle
                                 endCD = 1;
                             }
                         }
-                        _previousMp = mpnow1;
+                        _previousMp = mpNow1;
                     }
-
-
-
-
                     start = 0;
                 }
-
-
-
-                //if (startCD >= 1)
-                //{
-                //    endCD = 1;
-                //    startCD = 0;
-                //}
             }
             if (FireMode == 2)
             {
-                //startCD++;
                 start++;
                 if (start >= end)
                 {
-
-                    var hp = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (hp != null)
-                    {
-                        var hpnow = Traverse.Create(hp).Field("hp").GetValue<int>();
-                        //Log(hpnow.ToString());
-                    }
-
-                    var hpmax = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (hpmax != null)
-                    {
-                        var hpmaxnow = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
-                        //Log(hpmaxnow.ToString());
-                    }
-
-                    var hpstart = Traverse.Create(hpmax).Field("maxhp").GetValue<int>();
-                    var hpnow1 = Traverse.Create(hp).Field("hp").GetValue<int>();
-
                     if (_previousHp == null)
                     {
-                        _previousHp = hpstart;
+                        _previousHp = hpStart;
 
                     }
                     else
                     {
-                        int difference = hpnow1 - _previousHp.Value;
+                        int difference = hpNow1 - _previousHp.Value;
                         //Log($"差距: {difference}");
                         if (difference > 50 && difference < 80)
                         {
@@ -407,13 +387,11 @@ namespace AliceInCradle
                         else if (difference < 0 && difference > -60)
                         {
 
-                                //int addDGLAB_middle = Math.Abs((int)(difference));
-                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
-                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                                //Log("减血");
-                                //startCD -= 100;
-
-                            
+                            //int addDGLAB_middle = Math.Abs((int)(difference));
+                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
+                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                            //Log("减血");
+                            //startCD -= 100;
                         }
                         else
                         {
@@ -426,37 +404,15 @@ namespace AliceInCradle
                                 endCD = 1;
                             }
                         }
-                        _previousHp = hpnow1;
+                        _previousHp = hpNow1;
                     }
-
-
-                    var mp = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (mp != null)
-                    {
-                        var mpnow = Traverse.Create(mp).Field("mp").GetValue<int>();
-                        //Log(mpnow.ToString());
-                    }
-
-                    var mpmax = GameObject.FindObjectOfType<PRNoel>();
-
-                    if (mpmax != null)
-                    {
-                        var mpmaxnow = Traverse.Create(mpmax).Field("maxmp").GetValue<int>();
-                        //Log(mpmaxnow.ToString());
-                    }
-
-                    var mpstart = Traverse.Create(mpmax).Field("maxhp").GetValue<int>();
-                    var mpnow1 = Traverse.Create(mp).Field("mp").GetValue<int>();
-
                     if (_previousMp == null)
                     {
-                        _previousMp = mpstart;
-
+                        _previousMp = mpStart;
                     }
                     else
                     {
-                        int difference = mpnow1 - _previousMp.Value;
+                        int difference = mpNow1 - _previousMp.Value;
                         //Log($"差距: {difference}");
                         if (difference > 50 && difference < 80)
                         {
@@ -467,19 +423,12 @@ namespace AliceInCradle
                         }
                         else if (difference < 0 && difference > -70)
                         {
-                            if (lowest != 0)
+                            if (difference <= -1 && difference > -10 && lowest != 0 && EpFlag == true)
                             {
-                                if (difference == -2 || difference == -4)
-                                {
-                                    SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
-                                }
-                                else
-                                {
-                                    int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
-                                    SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                                }
+                                SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
+                                EpFlag = false;
                             }
-                            else
+                            else if (difference <= -10)
                             {
                                 int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
                                 SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
@@ -497,42 +446,16 @@ namespace AliceInCradle
                                 endCD = 1;
                             }
                         }
-                        _previousMp = mpnow1;
+                        _previousMp = mpNow1;
                     }
 
 
 
                     start = 0;
                 }
-
-
-
-                //if (startCD >= 1)
-                //{
-                //    endCD = 1;
-                //    startCD = 0;
-                //}
             }
-            if (Hero != 0)
-            {
-                var ep = GameObject.FindObjectOfType<M2MoverPr>();
 
-                if (ep != null)
-                {
-                    var epnow = Traverse.Create(ep).Field("ep").GetValue<int>();
-                    //Log(epnow.ToString());
-                    if(epnow == 999 && flag == false)
-                    {
-                        flag = true;
-                        int addDGLAB_middle = Math.Abs((int)Math.Ceiling(Hero * 1.0));
-                        SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                    }else if(epnow < 999)
-                    {
-                        flag = false;
-                    }
-                    
-                }
-            }
+
         }
 
         private async Task SendStrengthConfigAsync(int setDGLAB, int addDGLAB, int subDGLAB)
@@ -543,7 +466,6 @@ namespace AliceInCradle
 
             try
             {
-                // 构建请求体，根据参数包含不同的属性
                 string jsonContent;
                 if (setDGLAB == 0 && addDGLAB == 0 && subDGLAB == 0 && endCD == 1)
                 {
@@ -553,7 +475,6 @@ namespace AliceInCradle
                         ""sub"": {ReductionValue}
                         }}
                     }}";
-
                     endCD = 0;
                 }
                 else if (setDGLAB != 0 && addDGLAB == 0 && subDGLAB == 0)
@@ -603,7 +524,7 @@ namespace AliceInCradle
                     //Log($"Response body:\n{responseBody}");
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //Log("Exception Caught!");
                 //Log($"Message: {e.Message}");
