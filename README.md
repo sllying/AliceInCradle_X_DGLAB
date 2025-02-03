@@ -5,7 +5,7 @@
 ## 爱丽丝的摇篮 X 郊狼
 \
 基于[BepInEx](https://github.com/BepInEx/BepInEx)开发的Unity MOD,使用[DG-Lab-Coyote-Game-Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub)提供的API实现爱丽丝的摇篮与郊狼联动MOD。
-\
+
 ## 食用教程
 
 ### MOD安装教程
