@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\plugins\</OutputPath>
+    <OutputPath>..\..\AliceInCradle_ver027\BepInEx\plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -34,43 +34,42 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\0Harmony.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\AliceInCradle_ver027\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\AliceInCradle_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\AliceInCradle_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx.Core">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\BepInEx.Core.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\BepInEx\core\BepInEx.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx.Unity">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\BepInEx.Unity.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\BepInEx\core\BepInEx.Unity.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Cecil">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\Mono.Cecil.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\BepInEx\core\Mono.Cecil.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\Mono.Cecil.Mdb.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\BepInEx\core\Mono.Cecil.Mdb.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\Mono.Cecil.Pdb.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\BepInEx\core\Mono.Cecil.Pdb.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\Mono.Cecil.Rocks.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\BepInEx\core\Mono.Cecil.Rocks.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.Utils">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\MonoMod.Utils.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\BepInEx\core\MonoMod.Utils.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -108,27 +107,27 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\AliceInCradle_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\AliceInCradle_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\AliceInCradle_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\AliceInCradle_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\AliceInCradle_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\AliceInCradle_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\AliceInCradle_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\AliceInCradle_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\AliceInCradle_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\AliceInCradle_Data\Managed\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="unsafeAssem">
-      <HintPath>..\..\..\Win ver026\AliceInCradle_ver026 bepinex\AliceInCradle_Data\Managed\unsafeAssem.dll</HintPath>
+      <HintPath>..\..\AliceInCradle_ver027\AliceInCradle_Data\Managed\unsafeAssem.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -137,10 +136,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\..\Win ver026\AliceInCradle_ver026 bepinex\BepInEx\core\0Harmony.dll" />
+    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
