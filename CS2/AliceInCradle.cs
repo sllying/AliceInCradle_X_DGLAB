@@ -1,26 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Net.Http;
 using System.Threading.Tasks;
 using BepInEx;
 using nel;
 using UnityEngine;
-using UnityEngine.UI;
 using m2d;
-using XX;
-using BepInEx.Configuration;
 using HarmonyLib;
-using System.Net.WebSockets;
-using Newtonsoft.Json;
-using System.Threading;
-using Microsoft.CSharp;
-using System.Reflection;
 using Newtonsoft.Json.Linq;
-using static UnityEngine.UI.ContentSizeFitter;
-using System.Runtime.Serialization;
 using nel.mgm;
 
 
