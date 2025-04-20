@@ -1,6 +1,6 @@
 # AliceInCradle X DGLAB
 
-> 当厨圣是要付出代价的，你们有没有考虑过诺艾儿的感受？现在来体验吧！<br>
+> 当厨圣是要付出代价的，你们有没有考虑过诺艾儿的感受？现在惩罚你来体验下吧！<br>
 > （这真的是惩罚吗？）
 
 ⚠️ **注意**：请不要将游戏放在中文目录下。
@@ -9,7 +9,7 @@
 
 ## 项目简介
 
-**爱丽丝的摇篮 X 郊狼** 是一个基于 [BepInEx](https://github.com/BepInEx/BepInEx) 开发的 Unity MOD，使用了 [DG-Lab-Coyote-Game-Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub) 提供的 API完成游戏AliceInCradle与郊狼连接。
+**爱丽丝的摇篮 X 郊狼** 是一个基于 [BepInEx](https://github.com/BepInEx/BepInEx) 开发的 Unity MOD。<br>使用了 [DG-Lab-Coyote-Game-Hub](https://github.com/hyperzlib/DG-Lab-Coyote-Game-Hub) 提供的 API完成游戏AliceInCradle与郊狼连接。
 
 ---
 
@@ -69,7 +69,7 @@
 （配置文件在游戏根目录下config.json）
 以下是默认的配置选项，可根据需要进行调整：
 
-```json
+```code
 {
 //开火模式
 //1 默认，受到伤害增加强度
