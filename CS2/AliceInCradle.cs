@@ -17,10 +17,10 @@ namespace AliceInCradle
 
     public class Main : BaseUnityPlugin
     {
-        //代码写的很乱将就这看吧qwq
+        ////代码写的很乱将就这看吧qwq
         //public static void Log(string content)
         //{
-        //    string path = "E:/bt/XJ00291/[als]coyote/LOG2.txt";
+        //    string path = "LOG.txt";
         //    FileStream fs;
         //    if (File.Exists(path))
         //    {
@@ -35,7 +35,11 @@ namespace AliceInCradle
         //    sw.Close();
         //    fs.Close();
         //}
-
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private M2Attackable _hpComponentAttackable;
+        private PRNoel _prNoelComponent;
+        private M2MoverPr _epComponent;
+        private PR _prComponent;
         private float hpReductionMultiplier;
         private float mpReductionMultiplier;
         private float epReductionMultiplier;
@@ -69,8 +73,16 @@ namespace AliceInCradle
             //Log($"hpReductionValue: {hpReductionValue}");
             _lastCheckTime = DateTime.MinValue;
             _lastCheckTime2 = DateTime.MinValue;
-        }
 
+            CacheGameComponents();
+        }
+        private void CacheGameComponents()
+        {
+            _hpComponentAttackable = FindObjectOfType<M2Attackable>();
+            _prNoelComponent = FindObjectOfType<PRNoel>(); // PRNoel 同时用于 HP(模式1/2) 和 MP
+            _epComponent = FindObjectOfType<M2MoverPr>();
+            _prComponent = FindObjectOfType<PR>();
+        }
 
         private int start = 0;
         private int end = 0;
@@ -84,26 +96,32 @@ namespace AliceInCradle
         private int? _previousOr = null;
         public void Update()
         {
+            if (_prNoelComponent == null || _epComponent == null || _prComponent == null)
+            {
+                 CacheGameComponents();
+                return;
+            }
+
             var hpMax = default(object);
             var hp = default(object);
             var hpStart = default(int);
             var hpNow1 = default(int);
-            var mp = GameObject.FindObjectOfType<PRNoel>();
-            var mpMax = GameObject.FindObjectOfType<PRNoel>();
+            var mp = _prNoelComponent;
+            var mpMax = _prNoelComponent;
             var mpStart = default(int);
             var mpNow1 = default(int);
-            var ep = GameObject.FindObjectOfType<M2MoverPr>();
-            var orgasm = GameObject.FindObjectOfType<MgmEggRemove>();
-            var prNoel = GameObject.FindObjectOfType<PR>();
+            var ep = _epComponent;
+            //var orgasm = GameObject.FindObjectOfType<MgmEggRemove>();
+            var prNoel = _prComponent;
             if (FireMode == 0)
             {
-                hp = GameObject.FindObjectOfType<M2Attackable>();
-                hpMax = GameObject.FindObjectOfType<M2Attackable>();
+                hp = _hpComponentAttackable;
+                hpMax = _hpComponentAttackable;
             }
             if (FireMode == 1)
             {
-                hp = GameObject.FindObjectOfType<PRNoel>();
-                hpMax = GameObject.FindObjectOfType<PRNoel>();
+                hp = _prNoelComponent;
+                hpMax = _prNoelComponent;
             }
             if (hp != null)
             {
@@ -187,261 +205,120 @@ namespace AliceInCradle
                     SendStrengthConfigAsync(0, 0, eroH).ConfigureAwait(false);
                 }
             }
-            if (FireMode == 1)
+            start++;
+            if (start >= end) 
             {
-                start++;
-                if (start >= end)
+                // --- HP 变化处理 ---
+                if (_previousHp == null)
                 {
-                    if (_previousHp == null)
-                    {
-                        _previousHp = hpStart;
-                    }
-                    else
-                    {
-                        int difference = hpNow1 - _previousHp.Value;
-                        //Log($"差距: {difference}");
-                        if (difference > 20 && difference < 100)
-                        {
-                            int subDGLAB_middle = Math.Abs((int)(difference));
-                            SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
-                            //Log("加血");
-                            //Log($"hpReductionValue: {subDGLAB_middle}");
-                        }
-                        else if (difference < 0 && difference > -60)
-                        {
-
-                            //int addDGLAB_middle = Math.Abs((int)(difference));
-                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
-                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                            //Log("减血");
-                            //startCD -= 100;
-                        }
-                        else
-                        {
-                            //Log("没变化");
-                            SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
-                            DateTime now = DateTime.UtcNow;
-                            if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
-                            {
-                                _lastCheckTime = now;
-                                endCD = 1;
-                            }
-                        }
-                        _previousHp = hpNow1;
-                    }
-                    if (_previousMp == null)
-                    {
-                        _previousMp = mpStart;
-
-                    }
-                    else
-                    {
-                        int difference = mpNow1 - _previousMp.Value;
-                        //Log($"差距: {difference}");
-                        if (difference > 50 && difference < 80)
-                        {
-                            int subDGLAB_middle = Math.Abs((int)(difference));
-                            SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
-                            //Log("加蓝");
-                            //Log($"mpReductionValue: {subDGLAB_middle}");
-                        }
-                        else if (difference <= -1 && difference > -10 && lowest != 0 && EpFlag == true)
-                        {
-                            SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
-                            EpFlag = false;
-                        }
-                        else
-                        {
-                            //Log("没变化");
-                            SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
-                            DateTime now = DateTime.UtcNow;
-                            if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
-                            {
-                                _lastCheckTime = now;
-                                endCD = 1;
-                            }
-                        }
-                        _previousMp = mpNow1;
-                    }
-                    start = 0;
+                    _previousHp = hpStart;
                 }
-            }
-            if (FireMode == 0)
-            {
-                start++;
-                if (start >= end)
+                else
                 {
-                    if (_previousHp == null)
+                    int difference = hpNow1 - _previousHp.Value;
+                    bool hpChanged = false; // 标记HP是否有触发事件
+
+                    switch (FireMode)
                     {
-                        _previousHp = hpStart;
-
-                    }
-                    else
-                    {
-                        int difference = hpNow1 - _previousHp.Value;
-                        //Log($"差距: {difference}");
-                        if (difference > 20 && difference < 100)
-                        {
-                            int subDGLAB_middle = Math.Abs((int)(difference));
-                            SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
-                            //Log("加血");
-                            //Log($"hpReductionValue: {subDGLAB_middle}");
-                        }
-                        else if (difference < 0 && difference > -100)
-                        {
-
-                            //int addDGLAB_middle = Math.Abs((int)(difference));
-                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
-                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                            //Log("减血");
-                            //startCD -= 100;
-
-
-                        }
-
-                        else
-                        {
-                            //Log("没变化");
-                            SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
-                            DateTime now = DateTime.UtcNow;
-                            if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                        case 0: // Mode 0 的 HP 逻辑
+                        case 1://TODO以后不同的HP处理方法
+                        case 2:
+                            if (difference > 10 && difference < 200)
                             {
-                                _lastCheckTime = now;
-                                endCD = 1;
+                                //TODO
+                                //没有倍率
+                                SendStrengthConfigAsync(0, 0, Math.Abs(difference)).ConfigureAwait(false);
+                                hpChanged = true;
                             }
-                        }
-                        _previousHp = hpNow1;
-                    }
-
-                    if (_previousMp == null)
-                    {
-                        _previousMp = mpStart;
-
-                    }
-                    else
-                    {
-                        int difference = mpNow1 - _previousMp.Value;
-                        //Log($"差距: {difference}");
-                        if (difference > 20 && difference < 100)
-                        {
-                            int subDGLAB_middle = Math.Abs((int)(difference));
-                            SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
-                            //Log("加蓝");
-                            //Log($"mpReductionValue: {subDGLAB_middle}");
-                        }
-                        else if (difference <= -1 && difference > -10 && lowest != 0 && EpFlag == true)
-                        {
-                            SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
-                            EpFlag = false;
-                        }
-                        else
-                        {
-                            //Log("没变化");
-                            SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
-                            DateTime now = DateTime.UtcNow;
-                            if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                            else if (difference < 0 && difference > -150)
                             {
-                                _lastCheckTime = now;
-                                endCD = 1;
+                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
+                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                                hpChanged = true;
                             }
-                        }
-                        _previousMp = mpNow1;
+                            break;
+
                     }
-                    start = 0;
+
+                    if (!hpChanged) // 如果HP没有发生需要处理的变化，则执行通用无变化逻辑
+                    {
+                        SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
+                        DateTime now = DateTime.UtcNow;
+                        if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                        {
+                            _lastCheckTime = now;
+                            endCD = 1;
+                        }
+                    }
+                    _previousHp = hpNow1;
                 }
-            }
-            if (FireMode == 2)
-            {
-                start++;
-                if (start >= end)
+
+                // --- MP 变化处理 ---
+                if (_previousMp == null)
                 {
-                    if (_previousHp == null)
-                    {
-                        _previousHp = hpStart;
+                    _previousMp = mpStart;
+                }
+                else
+                {
+                    int difference = mpNow1 - _previousMp.Value;
+                    bool mpChanged = false; // 标记MP是否有触发事件
 
-                    }
-                    else
+                    switch (FireMode)
                     {
-                        int difference = hpNow1 - _previousHp.Value;
-                        //Log($"差距: {difference}");
-                        if (difference > 50 && difference < 80)
-                        {
-                            int subDGLAB_middle = Math.Abs((int)(difference));
-                            SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
-                            //Log("加血");
-                            //Log($"hpReductionValue: {subDGLAB_middle}");
-                        }
-                        else if (difference < 0 && difference > -60)
-                        {
 
-                            //int addDGLAB_middle = Math.Abs((int)(difference));
-                            int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
-                            SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                            //Log("减血");
-                            //startCD -= 100;
-                        }
-                        else
-                        {
-                            //Log("没变化");
-                            SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
-                            DateTime now = DateTime.UtcNow;
-                            if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                        case 0: // Mode 0 的 MP 逻辑
+                        case 1: //mp增加时减少强度
+                            if (difference > 20 && difference < 100)
                             {
-                                _lastCheckTime = now;
-                                endCD = 1;
+                                SendStrengthConfigAsync(0, 0, Math.Abs(difference)).ConfigureAwait(false);
+                                mpChanged = true;
                             }
-                        }
-                        _previousHp = hpNow1;
-                    }
-                    if (_previousMp == null)
-                    {
-                        _previousMp = mpStart;
-                    }
-                    else
-                    {
-                        int difference = mpNow1 - _previousMp.Value;
-                        //Log($"差距: {difference}");
-                        if (difference > 50 && difference < 80)
-                        {
-                            int subDGLAB_middle = Math.Abs((int)(difference));
-                            SendStrengthConfigAsync(0, 0, subDGLAB_middle).ConfigureAwait(false);
-                            //Log("加蓝");
-                            //Log($"mpReductionValue: {subDGLAB_middle}");
-                        }
-                        else if (difference < 0 && difference > -70)
-                        {
-                            if (difference <= -1 && difference > -10 && lowest != 0 && EpFlag == true)
+                            else if (difference <= -1 && difference > -10 && lowest != 0 && EpFlag)
                             {
                                 SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
                                 EpFlag = false;
+                                mpChanged = true;
                             }
-                            else if (difference <= -10)
-                            {
-                                int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
-                                SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
-                            }
-                        }
+                            break;
 
-                        else
-                        {
-                            //Log("没变化");
-                            SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
-                            DateTime now = DateTime.UtcNow;
-                            if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                        case 2:
+                            if (difference > 20 && difference < 100)
                             {
-                                _lastCheckTime = now;
-                                endCD = 1;
+                                SendStrengthConfigAsync(0, 0, Math.Abs(difference)).ConfigureAwait(false);
+                                mpChanged = true;
                             }
-                        }
-                        _previousMp = mpNow1;
+                            else if (difference < 0 && difference > -70)
+                            {
+                                if (difference <= -1 && difference > -10 && lowest != 0 && EpFlag)
+                                {
+                                    SendStrengthConfigAsync(0, lowest, 0).ConfigureAwait(false);
+                                    EpFlag = false;
+                                }
+                                else if (difference <= -10) // 注意这里是 <= -10
+                                {
+                                    int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * mpReductionMultiplier));
+                                    SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
+                                }
+                                mpChanged = true;
+                            }
+                            break;
                     }
 
-
-
-                    start = 0;
+                    if (!mpChanged) // 如果MP没有发生需要处理的变化
+                    {
+                        SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
+                        DateTime now = DateTime.UtcNow;
+                        if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                        {
+                            _lastCheckTime = now;
+                            endCD = 1;
+                        }
+                    }
+                    _previousMp = mpNow1;
                 }
-            }
 
+                start = 0; // 在处理完所有逻辑后重置计时器
+            }
 
         }
 
@@ -502,14 +379,13 @@ namespace AliceInCradle
                 }
 
 
-                using (HttpClient client = new HttpClient())
-                {
+                
                     HttpContent content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = await client.PostAsync(url, content);
+                    HttpResponseMessage response = await _httpClient.PostAsync(url, content);
                     response.EnsureSuccessStatusCode();
                     string responseBody = await response.Content.ReadAsStringAsync();
                     //Log($"Response body:\n{responseBody}");
-                }
+
             }
             catch (Exception)
             {
