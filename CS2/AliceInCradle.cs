@@ -13,7 +13,7 @@ using nel.mgm;
 
 namespace AliceInCradle
 {
-    [BepInPlugin("AliceInCradle.DGLAB", "Main", "0.27.0")]
+    [BepInPlugin("AliceInCradle.DGLAB", "Main", "0.28.0")]
 
     public class Main : BaseUnityPlugin
     {
@@ -35,47 +35,41 @@ namespace AliceInCradle
         //    sw.Close();
         //    fs.Close();
         //}
-        private static readonly HttpClient _httpClient = new HttpClient();
-        private M2Attackable _hpComponentAttackable;
-        private PRNoel _prNoelComponent;
-        private M2MoverPr _epComponent;
-        private PR _prComponent;
-        private float hpReductionMultiplier;
-        private float mpReductionMultiplier;
-        private float epReductionMultiplier;
-        private int CheckIntervalMs;
-        private int ReductionValue;
-        private int FireMode;
-        private DateTime _lastCheckTime;
-        private DateTime _lastCheckTime2;
-        private int lowest;
-        private int Hero;
-        private int holdMs;
-        private int eroH;
+        private static readonly HttpClient _httpClient = new HttpClient();//HttpClient实例
+        private M2Attackable _hpComponentAttackable;//hp组件
+        private PRNoel _prNoelComponent;//hp和mp组件
+        private M2MoverPr _epComponent;//体力组件
+        private PR _prComponent;//高潮组件
+        private float hpReductionMultiplier;//hp减少时增加强度倍率
+        private float mpReductionMultiplier;//mp减少时增加强度倍率
+        private float epReductionMultiplier;//ep减少时增加强度倍率
+        private int CheckIntervalMs;//间隔检测
+        private int ReductionValue;//每次减少强度
+        private int FireMode;//开火模式
+        private DateTime _strengthReductionTimer;//间隔检测
+        private DateTime _orgasmDurationTimer;//高潮持续时间检测
+        private int lowest;//mp减少时增加强度最低值
+        private int Hero;//每次高潮增加强度
+        private int holdMs;//高潮持续时间
+        private int eroH;//高潮恢复强度
+        private int maxChange;//变化过大不处理
+        private int DGLabLimit = 20;//强度默认20
+        private const int addChangeLimit = -1000;//增益最大值
+        private FileSystemWatcher _configWatcher;//配置文件监视器
+        private string _configPath = "Config.json";//配置文件路径
+        private object _configLock = new object();//配置文件锁
         public void Start()
         {
-            string jsonContent = File.ReadAllText("Config.json");
-            //Log(jsonContent);
-            // 解析JSON内容
-            JObject config = JObject.Parse(jsonContent);
-            hpReductionMultiplier = (float)config["hpReductionMultiplier"];
-            mpReductionMultiplier = (float)config["mpReductionMultiplier"];
-            epReductionMultiplier = (float)config["epReductionMultiplier"];
-            CheckIntervalMs = (int)config["CheckIntervalMs"];
-            ReductionValue = (int)config["ReductionValue"];
-            FireMode = (int)config["FireMode"];
-            lowest = (int)config["lowest"];
-            Hero = (int)config["Hero"];
-            holdMs = (int)config["holdMs"];
-            eroH = (int)config["eroH"];
-            //Log($"hpReductionMultiplier: {hpReductionMultiplier}");
-            //Log($"hpCheckIntervalMs: {hpCheckIntervalMs}");
-            //Log($"hpReductionValue: {hpReductionValue}");
-            _lastCheckTime = DateTime.MinValue;
-            _lastCheckTime2 = DateTime.MinValue;
+            // 初始化配置
+            LoadConfig();
 
+            // 设置文件监视器
+            SetupConfigWatcher();
+
+            // 缓存游戏必须组件
             CacheGameComponents();
         }
+        // 缓存游戏组件
         private void CacheGameComponents()
         {
             _hpComponentAttackable = FindObjectOfType<M2Attackable>();
@@ -83,17 +77,75 @@ namespace AliceInCradle
             _epComponent = FindObjectOfType<M2MoverPr>();
             _prComponent = FindObjectOfType<PR>();
         }
+        // 设置配置文件监视器
+        private void SetupConfigWatcher()
+        {
+            _configWatcher = new FileSystemWatcher();
+            _configWatcher.Path = Path.GetDirectoryName(Path.GetFullPath(_configPath));
+            _configWatcher.Filter = Path.GetFileName(_configPath);
+            _configWatcher.NotifyFilter = NotifyFilters.LastWrite;
 
-        private int start = 0;
-        private int end = 0;
-        private int endCD = 0;
-        private bool EpFlag = false;
-        private bool OrFlag = false;
-        private bool OrFlag2 = false;
-        private int? _previousHp = null;
-        private int? _previousMp = null;
-        private int? _previousEp = null;
-        private int? _previousOr = null;
+            _configWatcher.Changed += OnConfigFileChanged;
+            _configWatcher.EnableRaisingEvents = true;
+        }
+        // 加载配置文件
+        private void LoadConfig()
+        {
+            lock (_configLock)
+            {
+                string jsonContent = File.ReadAllText(_configPath);
+                JObject config = JObject.Parse(jsonContent);
+
+                hpReductionMultiplier = (float)config["hpReductionMultiplier"];
+                mpReductionMultiplier = (float)config["mpReductionMultiplier"];
+                epReductionMultiplier = (float)config["epReductionMultiplier"];
+                CheckIntervalMs = (int)config["CheckIntervalMs"];
+                ReductionValue = (int)config["ReductionValue"];
+                FireMode = (int)config["FireMode"];
+                lowest = (int)config["lowest"];
+                Hero = (int)config["Hero"];
+                holdMs = (int)config["holdMs"];
+                eroH = (int)config["eroH"];
+                maxChange = (int)config["maxChange"];
+            }
+        }
+        // 配置文件变更处理
+        private void OnConfigFileChanged(object sender, FileSystemEventArgs e)
+        {
+            // 添加短暂延迟确保文件写入完成
+            Task.Delay(100).ContinueWith(_ =>
+            {
+                try
+                {
+                    LoadConfig();
+                    Debug.Log("Configuration reloaded successfully");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Error reloading configuration: {ex.Message}");
+                }
+            });
+        }
+        // 清理资源
+        private void OnDestroy()
+        {
+            if (_configWatcher != null)
+            {
+                _configWatcher.EnableRaisingEvents = false;
+                _configWatcher.Dispose();
+            }
+        }
+
+
+        
+        private int endCD = 0;//是否进入冷却
+        private bool EpFlag = false;//体力增加标记
+        private bool OrFlag = false;//高潮标记
+        private bool OrFlag2 = false;//高潮标记2
+        private int? _previousHp = null;//上次hp
+        private int? _previousMp = null;//上次mp
+        private int? _previousEp = null;//上次ep
+        private int? _previousOr = null;//上次高潮次数
         public void Update()
         {
             if (_prNoelComponent == null || _epComponent == null || _prComponent == null)
@@ -118,7 +170,7 @@ namespace AliceInCradle
                 hp = _hpComponentAttackable;
                 hpMax = _hpComponentAttackable;
             }
-            if (FireMode == 1)
+            if (FireMode == 1 || FireMode == 2)
             {
                 hp = _prNoelComponent;
                 hpMax = _prNoelComponent;
@@ -163,7 +215,7 @@ namespace AliceInCradle
                             int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * Hero * 1.0));
                             SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
                             OrFlag = true;
-                            _lastCheckTime2 = DateTime.UtcNow;
+                            _orgasmDurationTimer = DateTime.UtcNow;
                         }
 
                         _previousOr = multiple;
@@ -180,7 +232,7 @@ namespace AliceInCradle
                 else
                 {
                     int difference = epNow - _previousEp.Value;
-                    if (difference > 0 && difference < 100)
+                    if (difference > 0 && difference < maxChange)
                     {
                         EpFlag = true;
                         int addDGLAB_middle = Math.Abs((int)Math.Round(difference * epReductionMultiplier / 10));
@@ -194,7 +246,7 @@ namespace AliceInCradle
             if (OrFlag)
             {
                 DateTime now1 = DateTime.UtcNow;
-                if (now1 - _lastCheckTime2 > TimeSpan.FromMilliseconds(holdMs))
+                if (now1 - _orgasmDurationTimer > TimeSpan.FromMilliseconds(holdMs))
                 {
                     OrFlag2 = true;
                 }
@@ -205,9 +257,6 @@ namespace AliceInCradle
                     SendStrengthConfigAsync(0, 0, eroH).ConfigureAwait(false);
                 }
             }
-            start++;
-            if (start >= end) 
-            {
                 // --- HP 变化处理 ---
                 if (_previousHp == null)
                 {
@@ -221,16 +270,16 @@ namespace AliceInCradle
                     switch (FireMode)
                     {
                         case 0: // Mode 0 的 HP 逻辑
-                        case 1://TODO以后不同的HP处理方法
+                        case 1: //TODO以后不同的HP处理方法
                         case 2:
-                            if (difference > 10 && difference < 200)
+                            if (difference > 10 && difference < maxChange)
                             {
                                 //TODO
-                                //没有倍率
+                                //增加血量是根据增量减少强度 没有倍率
                                 SendStrengthConfigAsync(0, 0, Math.Abs(difference)).ConfigureAwait(false);
                                 hpChanged = true;
                             }
-                            else if (difference < 0 && difference > -150)
+                            else if (difference < 0 && difference >  addChangeLimit)
                             {
                                 int addDGLAB_middle = Math.Abs((int)Math.Ceiling(difference * hpReductionMultiplier));
                                 SendStrengthConfigAsync(0, addDGLAB_middle, 0).ConfigureAwait(false);
@@ -244,9 +293,9 @@ namespace AliceInCradle
                     {
                         SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
                         DateTime now = DateTime.UtcNow;
-                        if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                        if (now - _strengthReductionTimer > TimeSpan.FromMilliseconds(CheckIntervalMs))
                         {
-                            _lastCheckTime = now;
+                            _strengthReductionTimer = now;
                             endCD = 1;
                         }
                     }
@@ -268,7 +317,7 @@ namespace AliceInCradle
 
                         case 0: // Mode 0 的 MP 逻辑
                         case 1: //mp增加时减少强度
-                            if (difference > 20 && difference < 100)
+                        if (difference > 20 && difference < maxChange)
                             {
                                 SendStrengthConfigAsync(0, 0, Math.Abs(difference)).ConfigureAwait(false);
                                 mpChanged = true;
@@ -282,12 +331,12 @@ namespace AliceInCradle
                             break;
 
                         case 2:
-                            if (difference > 20 && difference < 100)
+                            if (difference > 20 && difference < maxChange)
                             {
                                 SendStrengthConfigAsync(0, 0, Math.Abs(difference)).ConfigureAwait(false);
                                 mpChanged = true;
                             }
-                            else if (difference < 0 && difference > -70)
+                            else if (difference < 0 && difference >  addChangeLimit)
                             {
                                 if (difference <= -1 && difference > -10 && lowest != 0 && EpFlag)
                                 {
@@ -308,24 +357,21 @@ namespace AliceInCradle
                     {
                         SendStrengthConfigAsync(0, 0, 0).ConfigureAwait(false);
                         DateTime now = DateTime.UtcNow;
-                        if (now - _lastCheckTime > TimeSpan.FromMilliseconds(CheckIntervalMs))
+                        if (now - _strengthReductionTimer > TimeSpan.FromMilliseconds(CheckIntervalMs))
                         {
-                            _lastCheckTime = now;
+                            _strengthReductionTimer = now;
                             endCD = 1;
                         }
                     }
                     _previousMp = mpNow1;
                 }
-
-                start = 0; // 在处理完所有逻辑后重置计时器
             }
 
-        }
+        const string baseUrl = "http://127.0.0.1:8920/";
+        const string clientId = "all";
 
         private async Task SendStrengthConfigAsync(int setDGLAB, int addDGLAB, int subDGLAB)
         {
-            string baseUrl = "http://127.0.0.1:8920/";
-            string clientId = "all";
             string url = $"{baseUrl}api/game/{clientId}/strength_config";
 
             try
@@ -393,35 +439,34 @@ namespace AliceInCradle
                 //Log($"Message: {e.Message}");
             }
         }
-        //static readonly HttpClient client = new HttpClient();
+        static readonly HttpClient client = new HttpClient();
 
-        //static async Task Main(string[] args)
-        //{
-        //    string url = "http://127.0.0.1:8921/api/game/all";
+        //TODO 查询当前强度上限
+        private async Task QueryStrengthConfig(string[] args)
+        {
+            string url = baseUrl + "api/game/" + clientId;
 
-        //    try
-        //    {
-        //        // 发送GET请求
-        //        HttpResponseMessage response = await client.GetAsync(url);
-        //        response.EnsureSuccessStatusCode();
+            try
+            {
+                // 发送GET请求
+                HttpResponseMessage response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
 
-        //        // 读取响应内容
-        //        string responseBody = await response.Content.ReadAsStringAsync();
+                // 读取响应内容
+                string responseBody = await response.Content.ReadAsStringAsync();
+                //Log(responseBody);
 
-        //        // 输出响应内容
-        //        Log(responseBody);
-
-        //        // 解析响应内容
-        //        dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(responseBody);
-        //        int limit = data.clientStrength.limit;
-        //        Log($"Limit: {limit}");
-        //    }
-        //    catch (HttpRequestException e)
-        //    {
-        //        Console.WriteLine("\nException Caught!");
-        //        Console.WriteLine("Message :{0} ", e.Message);
-        //    }
-        //}
+                // 解析响应内容 获取范围
+                dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(responseBody);
+                DGLabLimit = data.clientStrength.limit;
+                //Log($"Limit: {limit}");
+            }
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine("\nException Caught!");
+                Console.WriteLine("Message :{0} ", e.Message);
+            }
+        }
 
         public void OnGUI()
         {
