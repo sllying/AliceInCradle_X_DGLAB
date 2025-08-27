@@ -17,7 +17,7 @@
 
 ### MOD 安装教程
 
-1. 将压缩包内 **AliceInCradle_ver027** 文件夹的内容复制到本地游戏的 **AliceInCradle_ver027** 文件夹中。
+1. 将压缩包内 **AliceInCradle_ver028** 文件夹的内容复制到本地游戏的 **AliceInCradle_ver028** 文件夹中。
 2. [点击这里下载 MOD](https://github.com/sllying/AliceInCradle_X_DGLAB/releases)。
 
 ---
@@ -52,12 +52,12 @@
    使用 Visual Studio 打开项目根目录下的 [`AliceInCradleXDGLAB.sln`](https://github.com/sllying/AliceInCradle_X_DGLAB/blob/main/AliceInCradleXDGLAB.sln)。
 
 2. **选择构建配置**  
-   - 输出路径为 `（你的游戏位置）\AliceInCradle_ver027\BepInEx\plugins\`；
+   - 输出路径为 `（你的游戏位置）\AliceInCradle_ver028\BepInEx\plugins\`；
 
 3. **依赖文件正确**  
    项目依赖BepInEx文件和AliceInCradle文件，请指定这些文件目录：
-   - `0Harmony.dll`：`AliceInCradle_ver027/BepInEx/core/`
-   - `Assembly-CSharp.dll`：`AliceInCradle_ver027/AliceInCradle_Data/Managed/`
+   - `0Harmony.dll`：`AliceInCradle_ver028/BepInEx/core/`
+   - `Assembly-CSharp.dll`：`AliceInCradle_ver028/AliceInCradle_Data/Managed/`
    -  等等
 
 4. **构建解决方案**  
