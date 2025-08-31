@@ -133,8 +133,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AliceInCradle.cs" />
+    <Compile Include="Components\GameComponentManager.cs" />
+    <Compile Include="Config\ConfigManager.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="Network\DGLabApiClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="State\PlayerStatusController.cs" />
+    <Compile Include="Tools\MyLog.cs" />
+    <Compile Include="UI\UIManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -142,5 +148,6 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
